@@ -19,3 +19,7 @@ name = "client"
 path = "src/client/main.rs"
 
 [dependencies]
+rocket = "0.5.0-rc.1"
+tokio-tungstenite = "0.14.0"
+tonic = "0.4.3"
+hashlink = "0.7.0"
