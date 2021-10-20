@@ -1,65 +1,97 @@
 use std::cmp::Ordering;
+use std::sync::{Arc, Mutex};
+use std::thread;
+use std::time::Duration;
 
-pub struct Agent;
-
-/// PacketA represent what agents should play.
-/// It has a sample and its sample rate plus a
-/// number for the agent to know in which order to play the samples
 #[derive(Debug, Copy, Clone)]
-pub struct PacketA;
+struct TaggedSampleBuffer;
 
-/// PacketA represent what agents should play.
-/// It has a sample and its sample rate plus a
-/// number for the agent to know in which order to play the samples
-#[derive(Debug, Copy, Clone)]
-pub struct PacketC;
-
-/// PacketA represent what agents should play.
-/// It has a sample and its sample rate plus a
-/// number for the agent to know in which order to play the samples
-#[derive(Debug, Copy, Clone)]
-pub struct PacketB;
-
-#[derive(Debug, Eq, Ord, Copy, Clone)]
-pub struct Sample(pub u32);
-
-impl PartialEq for Sample {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
+impl TaggedSampleBuffer {
+    fn push(&mut self, tagged_sample: TaggedSample) {}
+    fn pop(&mut self) -> TaggedSample {
+        TaggedSample
+    }
+    fn isEmpty(&self) -> bool {
+        false
     }
 }
 
-impl PartialOrd for Sample {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.0 == other.0 {
-            Some(Ordering::Equal)
-        } else if self.0 > other.0 {
-            Some(Ordering::Greater)
-        } else if self.0 < other.0 {
-            Some(Ordering::Less)
-        } else {
-            None
+/*
+#[derive(Debug, Copy, Clone)]
+pub struct Master {
+    tagged_sample_buffer: TaggedSampleBuffer,
+}
+*/
+
+struct TaggedSample;
+
+fn get_data() -> TaggedSample {
+    // milliseconds
+    let interval = 20;
+    thread::sleep(Duration::from_millis(interval));
+    TaggedSample
+}
+
+fn send_to_agents(tagged_sample: TaggedSample) {}
+
+fn start_server() {
+    let tagged_sample_buffer = Arc::new(Mutex::new(TaggedSampleBuffer));
+    let missing_samples = Arc::new(Mutex::new(TaggedSampleBuffer));
+
+    let handle = {
+        let tagged_sample_buffer = tagged_sample_buffer.clone();
+        thread::spawn(move || loop {
+            // TODO
+            // Tag the sample here
+            let tagged_sample = get_data();
+            //
+            match tagged_sample_buffer.lock() {
+                Ok(mut value) => {
+                    value.push(tagged_sample);
+                }
+                Err(error) => {
+                    unimplemented!()
+                }
+            }
+        })
+    };
+
+    let handle_2 = {
+        let tagged_sample_buffer = tagged_sample_buffer.clone();
+        thread::spawn(move || loop {
+            match tagged_sample_buffer.lock() {
+                Ok(mut value) => {
+                    // --------
+                    // should add a loop here. shouldn't send samples to agents 1 by 1
+                    // need to know sample rate here
+                    // send a fixed ammount of seconds that can be configured by a controller
+                    if !value.isEmpty() {
+                        send_to_agents(value.pop())
+                    };
+                    // --------
+                }
+                Err(error) => {
+                    unimplemented!()
+                }
+            }
+        })
+    };
+
+    match handle.join() {
+        Ok(value) => {
+            // unimplemented!();
+
+        }
+        Err(error) => {
+            // unimplemented!();
         }
     }
-}
-
-/// Send packet A to `agent`
-///
-pub fn send_packet_a(agent: &Agent, packet: PacketA) {
-    dbg!("pkt a sent");
-}
-
-pub fn wait_for_sample() -> Sample {
-    dbg!("wait sample");
-    Sample(0)
-}
-
-pub fn wait_for_packet_b() -> PacketB {
-    dbg!("wait missing packets feedback");
-    PacketB {}
-}
-
-pub fn send_packet_c() -> PacketC {
-    dbg!("wait missing packets feedback");
-    PacketC {}
+    match handle_2.join() {
+        Ok(value) => {
+            unimplemented!()
+        }
+        Err(error) => {
+            unimplemented!()
+        }
+    }
 }

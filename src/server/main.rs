@@ -188,3 +188,24 @@ fn wait_for_packet_a() -> PacketA {
 fn send_packet_a(packet: PacketA) {}
 
 mod packet_a_factory;
+
+trait Node {
+    //fn new(name: &'static str) -> Self;
+    fn to_string(&self) -> String;
+}
+
+struct GenNode<T: Node> {
+    children: Vec<T>,
+}
+
+use std::string::String;
+
+impl<T: Node> Node for GenNode<T> {
+    fn to_string(&self) -> String {
+        let mut res = String::from("");
+        for e in &self.children {
+            res.push_str(&e.to_string());
+        }
+        res
+    }
+}
